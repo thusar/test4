@@ -18,21 +18,32 @@ Socket::~Socket()
     close(_socketFileDescriptor);
 }
 
-void Socket::read(pairOfTwoCharacters& buffer)
+ssize_t Socket::read(const pairOfTwoCharacters& buffer)
 {
-    ::read(_connectionFileDescriptor, static_cast<char*>(buffer), 2);
+    std::string first{buffer.first};
+    std::string second{buffer.second};
+    std::string wholeBuffer = first + second;
+    wholeBuffer.resize(2);
+
+    ssize_t twoChars = ::read(_connectionFileDescriptor, static_cast<void*>(const_cast<char*>(wholeBuffer.data())), 2);
+    return twoChars;
 }
 
-void Socket::write(const pairOfTwoCharacters& buffer)
+void Socket::write(const pairOfTwoCharacters& buffer, std::size_t lengthOfBuffer=2)
 {
-    ::write(_connectionFileDescriptor, static_cast<char*>(buffer), 2);
+    std::string first{buffer.first};
+    std::string second{buffer.second};
+    std::string wholeBuffer = first + second;
+
+    ::write(_connectionFileDescriptor, wholeBuffer.c_str(), 2);
 }
 
-pairOfTwoCharacters& Socket::read()
+pairOfTwoCharacters Socket::read()
 {
-    std::size_t length = read_uint16();
-    pairOfTwoCharacters& buffer{std::make_pair(length)};
-    read(buffer);
+    std::uint16_t twoChars = read_uint16();
+    char lowerChar = twoChars & 0xFF;
+    char higherChar = twoChars >> 8;
+    pairOfTwoCharacters buffer = std::make_pair(lowerChar, higherChar);
     return buffer;
 }
 
@@ -45,29 +56,16 @@ void Socket::write(pairOfTwoCharacters& buffer)
 
 uint16_t Socket::read_uint16()
 {
-    pairOfTwoCharacters& buffer;
-    read(buffer);
-    uint16_t result = static_cast<uint16_t>(buffer);
+    pairOfTwoCharacters buffer;
+    ssize_t twoChars = read(buffer);
+    uint16_t result = static_cast<uint16_t>(twoChars);
     return result;
-}
-
-uint8_t Socket::read_uint8()
-{
-    char buffer;
-    read(&buffer, 1);
-    return static_cast<uint8_t>(buffer);
 }
 
 void Socket::write_uint16(const uint16_t& value)
 {
-    pairOfTwoCharacters buffer;
-    buffer = static_cast<pairOfTwoCharacters>(value);
+    char lowerChar = value & 0xFF; // Extract lower 8 bits
+    char higherChar = (value >> 8) & 0xFF; // Extract higher 8 bits
+    pairOfTwoCharacters buffer = std::make_pair(lowerChar, higherChar);
     write(buffer);
 }
-
-void Socket::write_uint8(const uint8_t& value)
-{
-    write(static_cast<const char*>(value));
-}
-
-

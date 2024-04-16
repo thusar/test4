@@ -31,14 +31,12 @@ private:
 public:
     Socket();
     ~Socket();
-    void read(pairOfTwoCharacters& buffer);
-    void write(pairOfTwoCharacters& buffer, std::size_t lengthOfBuffer=2);
-    pairOfTwoCharacters& read();
+    ssize_t read(const pairOfTwoCharacters& buffer);
+    void write(const pairOfTwoCharacters& buffer, std::size_t lengthOfBuffer);
+    pairOfTwoCharacters read();
     void write(pairOfTwoCharacters& buffer);
     std::uint16_t read_uint16();
-    std::uint8_t read_uint8();
     void write_uint16(const uint16_t& value);
-    void write_uint8(const uint8_t& value);
 };
 
 #endif
