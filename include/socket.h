@@ -19,18 +19,46 @@
 #include <utility>
 
 using pairOfTwoCharacters = std::pair<char, char>;
-
-class Socket
+using maxConnects = int;
+constexpr maxConnects maxConnectsValue = 8;
+class SocketPlayer;
+class SocketJudge
 {
 private:
     int _socketFileDescriptor{socket(AF_INET, SOCK_STREAM, 0)};
     int _connectionFileDescriptor{0};
     std::uint16_t _port;
-    sockaddr _serverAddress;
+    std::shared_ptr<sockaddr> _socketAddress;
     std::string _ip{"0.0.0.0"};
 public:
-    Socket();
-    ~Socket();
+    SocketJudge();
+    ~SocketJudge();
+
+    int bind();
+    int listen(SocketPlayer& socketPlayer);
+    int accept(SocketPlayer& socketPlayer);
+    ssize_t read(const pairOfTwoCharacters& buffer);
+    void write(const pairOfTwoCharacters& buffer, std::size_t lengthOfBuffer);
+    pairOfTwoCharacters read(SocketPlayer& socketPlayer);
+    void write(SocketPlayer& socketPlayer, pairOfTwoCharacters& buffer);
+    std::uint16_t read_uint16();
+    void write_uint16(const uint16_t& value);
+};
+
+class SocketPlayer
+{
+private:
+    int _socketFileDescriptor{socket(AF_INET, SOCK_STREAM, 0)};
+    int _connectionFileDescriptor{0};
+    std::uint16_t _port;
+    std::shared_ptr<sockaddr> _socketAddress;
+    std::string _ip{"0.0.0.0"};
+public:
+    SocketPlayer();
+    ~SocketPlayer();
+    int get_socket_file_descriptor() { return _socketFileDescriptor;}
+    std::shared_ptr<sockaddr> get_socket_address() { return _socketAddress; }
+    int connect(SocketJudge& socketJudge);
     ssize_t read(const pairOfTwoCharacters& buffer);
     void write(const pairOfTwoCharacters& buffer, std::size_t lengthOfBuffer);
     pairOfTwoCharacters read();
@@ -38,5 +66,4 @@ public:
     std::uint16_t read_uint16();
     void write_uint16(const uint16_t& value);
 };
-
 #endif
