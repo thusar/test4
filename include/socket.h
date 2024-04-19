@@ -35,6 +35,8 @@ public:
     ~SocketJudge();
 
     int bind();
+    int get_socket_file_descriptor() { return _socketFileDescriptor;}
+    std::shared_ptr<sockaddr> get_socket_address() { return _socketAddress; }
     int listen(SocketPlayer& socketPlayer);
     int accept(SocketPlayer& socketPlayer);
     ssize_t read(const pairOfTwoCharacters& buffer);
@@ -59,11 +61,11 @@ public:
     int get_socket_file_descriptor() { return _socketFileDescriptor;}
     std::shared_ptr<sockaddr> get_socket_address() { return _socketAddress; }
     int connect(SocketJudge& socketJudge);
-    ssize_t read(const pairOfTwoCharacters& buffer);
-    void write(const pairOfTwoCharacters& buffer, std::size_t lengthOfBuffer);
-    pairOfTwoCharacters read();
-    void write(pairOfTwoCharacters& buffer);
-    std::uint16_t read_uint16();
-    void write_uint16(const uint16_t& value);
+    ssize_t read(SocketJudge& socketJudge, const pairOfTwoCharacters& buffer);
+    void write(SocketJudge& socketJudge, const pairOfTwoCharacters& buffer, std::size_t lengthOfBuffer);
+    pairOfTwoCharacters read(SocketJudge& socketJudge);
+    void write(SocketJudge& socketJudge, pairOfTwoCharacters& buffer);
+    std::uint16_t read_uint16(SocketJudge& socketJudge);
+    void write_uint16(SocketJudge& socketJudge, const uint16_t& value);
 };
 #endif

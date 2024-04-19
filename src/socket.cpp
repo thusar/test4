@@ -60,7 +60,7 @@ void SocketJudge::write(const pairOfTwoCharacters& buffer, std::size_t lengthOfB
 
 pairOfTwoCharacters SocketJudge::read(SocketPlayer& socketPlayer)
 {
-    std::uint16_t twoChars = socketPlayer.read_uint16();
+    std::uint16_t twoChars = socketPlayer.read_uint16(*this);
     char lowerChar = twoChars & 0xFF;
     char higherChar = twoChars >> 8;
     pairOfTwoCharacters buffer = std::make_pair(lowerChar, higherChar);
@@ -70,8 +70,8 @@ pairOfTwoCharacters SocketJudge::read(SocketPlayer& socketPlayer)
 void SocketJudge::write(SocketPlayer& socketPlayer, pairOfTwoCharacters& buffer)
 {
   uint16_t length = 2;
-  socketPlayer.write_uint16(length);
-  socketPlayer.write(buffer);
+  socketPlayer.write_uint16(*this, length);
+  socketPlayer.write(*this, buffer);
 }
 
 uint16_t SocketJudge::read_uint16()
@@ -107,57 +107,64 @@ SocketPlayer::~SocketPlayer()
 
 int SocketPlayer::connect(SocketJudge& socketJudge)
 {
-    return 0;
+    int connectReturn = ::connect(socketJudge.get_socket_file_descriptor(),
+                                  socketJudge.get_socket_address().get(),
+                                  sizeof(socketJudge.get_socket_address()));
+    return connectReturn;
 }
 
-ssize_t SocketPlayer::read(const pairOfTwoCharacters& buffer)
+ssize_t SocketPlayer::read(SocketJudge& socketJudge, const pairOfTwoCharacters& buffer)
 {
     std::string first{buffer.first};
     std::string second{buffer.second};
     std::string wholeBuffer = first + second;
     wholeBuffer.resize(2);
+    ssize_t wholeBufferSize{2};
 
-    ssize_t twoChars = ::read(_connectionFileDescriptor, static_cast<void*>(const_cast<char*>(wholeBuffer.data())), 2);
+    ssize_t twoChars = ::read(socketJudge.get_socket_file_descriptor(), 
+                              static_cast<void*>(const_cast<char*>(wholeBuffer.data())),
+                              wholeBufferSize);
     return twoChars;
 }
 
-void SocketPlayer::write(const pairOfTwoCharacters& buffer, std::size_t lengthOfBuffer=2)
+void SocketPlayer::write(SocketJudge& socketJudge, const pairOfTwoCharacters& buffer, std::size_t lengthOfBuffer=2)
 {
     std::string first{buffer.first};
     std::string second{buffer.second};
     std::string wholeBuffer = first + second;
+    ssize_t wholeBufferSize{2};
 
-    ::write(_connectionFileDescriptor, wholeBuffer.c_str(), 2);
+    ::write(socketJudge.get_socket_file_descriptor(), wholeBuffer.c_str(), wholeBufferSize);
 }
 
-pairOfTwoCharacters SocketPlayer::read()
+pairOfTwoCharacters SocketPlayer::read(SocketJudge& socketJudge)
 {
-    std::uint16_t twoChars = read_uint16();
+    std::uint16_t twoChars = read_uint16(socketJudge);
     char lowerChar = twoChars & 0xFF;
     char higherChar = twoChars >> 8;
     pairOfTwoCharacters buffer = std::make_pair(lowerChar, higherChar);
     return buffer;
 }
 
-void SocketPlayer::write(pairOfTwoCharacters& buffer)
+void SocketPlayer::write(SocketJudge& socketJudge, pairOfTwoCharacters& buffer)
 {
   uint16_t length = 2;
-  write_uint16(length);
-  write(buffer);
+  write_uint16(socketJudge, length);
+  write(socketJudge, buffer);
 }
 
-uint16_t SocketPlayer::read_uint16()
+uint16_t SocketPlayer::read_uint16(SocketJudge& socketJudge)
 {
     pairOfTwoCharacters buffer;
-    ssize_t twoChars = read(buffer);
+    ssize_t twoChars = read(socketJudge, buffer);
     uint16_t result = static_cast<uint16_t>(twoChars);
     return result;
 }
 
-void SocketPlayer::write_uint16(const uint16_t& value)
+void SocketPlayer::write_uint16(SocketJudge& socketJudge, const uint16_t& value)
 {
     char lowerChar = value & 0xFF; // Extract lower 8 bits
     char higherChar = (value >> 8) & 0xFF; // Extract higher 8 bits
     pairOfTwoCharacters buffer = std::make_pair(lowerChar, higherChar);
-    write(buffer);
+    write(socketJudge, buffer);
 }

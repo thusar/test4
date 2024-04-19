@@ -17,6 +17,7 @@ class Board
 private:
     board _board;
 public:
+    
 };
 
 #endif

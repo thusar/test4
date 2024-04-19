@@ -49,10 +49,11 @@ public:
         pairOfTwoCharacters twoChars = socketJudge.read(socketPlayer);
         return twoChars;
     }
-    void write_to_player_socket(SocketJudge& socketJudge, SocketPlayer& socketPlayer, pairOfTwoCharacters& buffer)
+    void write_to_player_socket(SocketJudge& socketJudge, SocketPlayer& socketPlayer, pairOfTwoCharacters& twoCharacters)
     {
-        socketJudge.write(socketPlayer, buffer);
+        socketJudge.write(socketPlayer, twoCharacters);
     }
+
 
 };
 
