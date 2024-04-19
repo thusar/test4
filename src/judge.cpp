@@ -1,8 +1,8 @@
 #include "../include/board.h"
 #include "../include/socket.h"
 
-using armada = std::array<std::array<char, 10>, 10>;
-using pairOfTwoArmadas = std::pair<armada, armada>;
+using board = std::array<std::array<char, 10>, 10>;
+using pairOfTwoBoards = std::pair<board, board>;
 using pairOfTwoCharacters = std::pair<char, char>;
 
 class PlayerProcess
